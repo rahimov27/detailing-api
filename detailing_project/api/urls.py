@@ -1,3 +1,6 @@
 from django.urls import path
+from .views import ClientListCreateAPIView
 
-urlpatterns = []
+urlpatterns = [
+    path("clients/", ClientListCreateAPIView.as_view(), name="client-list-create"),
+]
