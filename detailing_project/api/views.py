@@ -1,70 +1,17 @@
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+# В файле api/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Client
 from .serializers import ClientSerializer
+from drf_yasg.utils import swagger_auto_schema
 
 
 class ClientListCreateAPIView(APIView):
     @swagger_auto_schema(
-        operation_description="Получение списка клиентов",
-        responses={
-            200: openapi.Response(
-                description="Список клиентов",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "id": openapi.Schema(
-                                type=openapi.TYPE_INTEGER, description="ID клиента"
-                            ),
-                            "first_name": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="Имя клиента"
-                            ),
-                            "last_name": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="Фамилия клиента"
-                            ),
-                            "email": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="Email клиента"
-                            ),
-                            "phone": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="Телефон клиента"
-                            ),
-                        },
-                    ),
-                ),
-            )
-        },
-    )
-    def get(self, request):
-        clients = Client.objects.all()
-        serializer = ClientSerializer(clients, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @swagger_auto_schema(
-        operation_description="Создание нового клиента",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "first_name": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Имя клиента"
-                ),
-                "last_name": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Фамилия клиента"
-                ),
-                "email": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Email клиента"
-                ),
-                "phone": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Телефон клиента"
-                ),
-            },
-            required=["first_name", "last_name", "email", "phone"],
-        ),
-        responses={201: openapi.Response("Клиент создан")},
+        operation_description="Получение списка клиентов и создание нового клиента.",
+        responses={200: ClientSerializer(many=True), 201: "Клиент создан"},
+        request_body=ClientSerializer,  # ✅ Добавляем тело запроса
     )
     def post(self, request):
         serializer = ClientSerializer(data=request.data)
@@ -72,3 +19,43 @@ class ClientListCreateAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        clients = Client.objects.all()
+        serializer = ClientSerializer(clients, many=True)
+        return Response(serializer.data)
+
+
+class ClientDetailAPIView(APIView):
+    def get(self, request, pk):
+        try:
+            client = Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return Response(
+                {"detail": "Клиент не найден"}, status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = ClientSerializer(client)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        try:
+            client = Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return Response(
+                {"detail": "Клиент не найден"}, status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = ClientSerializer(client, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            client = Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return Response(
+                {"detail": "Клиент не найден"}, status=status.HTTP_404_NOT_FOUND
+            )
+        client.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
