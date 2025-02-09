@@ -28,3 +28,11 @@ class Client(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.service}"
+
+
+class ApiKey(models.Model):
+    key = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.key

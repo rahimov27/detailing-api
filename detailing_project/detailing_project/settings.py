@@ -128,3 +128,17 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+MIDDLEWARE.append("api.middleware.ApiKeyMiddleware")
+
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "API Key": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+        }
+    },
+}
