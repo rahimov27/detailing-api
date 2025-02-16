@@ -88,9 +88,34 @@ from datetime import datetime
 from django.db.models import Q
 
 
+from datetime import datetime
+import os
+
+from django.http import HttpResponse
+from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A3
+from reportlab.lib import colors
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+
+from .models import Client, ApiKey
+
+
+# Функция для обрезки текста с добавлением многоточия
+def truncate_text(text, max_length):
+    if len(text) > max_length:
+        return text[:max_length] + "..."
+    return text
+
+
 class ClientReportPDFAPIView(APIView):
     def get(self, request):
-        # Получаем API ключ
+        # Получаем API ключ из заголовка
         api_key = request.headers.get("Authorization")
 
         # Проверка API-ключа
@@ -99,18 +124,18 @@ class ClientReportPDFAPIView(APIView):
                 {"error": "Invalid API key"}, status=status.HTTP_403_FORBIDDEN
             )
 
-        # Получаем параметры для фильтрации (месяц и год)
+        # Получаем параметры месяца и года
         month = request.query_params.get("month")
         year = request.query_params.get("year")
 
-        # Проверка наличия месяцев и года
+        # Проверка параметров
         if not month or not year:
             return Response(
                 {"error": "Month and year parameters are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Преобразуем месяц и год в целые числа
+        # Преобразование в числа
         try:
             month = int(month)
             year = int(year)
@@ -123,40 +148,46 @@ class ClientReportPDFAPIView(APIView):
         # Фильтрация клиентов по месяцу и году
         clients = Client.objects.filter(Q(date__month=month) & Q(date__year=year))
 
-        # Продолжаем создание PDF
+        # Подготовка HTTP-ответа для PDF
         response = HttpResponse(content_type="application/pdf")
         response["Content-Disposition"] = 'attachment; filename="client_report.pdf"'
 
+        # Создание PDF
         p = canvas.Canvas(response, pagesize=A3)
         width, height = A3
         y_position = height - 50
 
-        font_path = "/Users/r27/Downloads/djsans/DejaVuSans.ttf"
+        # Определение пути к шрифту
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        font_path = os.path.join(BASE_DIR, "assets", "djsans", "DejaVuSans.ttf")
+
+        # Проверяем существование файла
         if not os.path.exists(font_path):
             return Response(
-                {"error": "Font file not found"},
+                {"error": f"Font file not found: {font_path}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+        # Регистрация шрифта
         pdfmetrics.registerFont(TTFont("DejaVu", font_path))
 
-        # Заголовок (увеличенный шрифт)
+        # Заголовок отчета
         p.setFont("DejaVu", 16)
         p.setFillColor(colors.black)
         p.drawString(60, y_position, "ОТЧЕТ")
         y_position -= 30
 
-        # Черные линии по бокам
+        # Чёрная рамка
         p.setFillColor(colors.black)
         p.rect(20, 40, width - 60, height - 100, fill=0)
 
-        # Добавляем дату и название компании
+        # Дата и компания
         company_name = "A1-workspace"
         current_month = datetime(year, month, 1).strftime("%B %Y")
         p.setFont("DejaVu", 12)
         p.drawString(60, height - 20, f"{company_name} - Отчет за {current_month}")
 
-        # Подписи столбцов
+        # Заголовки столбцов
         columns = ["ФИО", "Телефон", "Услуга", "Цена (KGS)", "Статус", "Дата"]
         x_positions = [60, 200, 350, 470, 580, 680]
 
@@ -167,9 +198,10 @@ class ClientReportPDFAPIView(APIView):
         p.line(20, y_position, width - 40, y_position)
         y_position -= 20
 
-        # Данные клиентов
+        # Заполнение данными
         total_income = 0
         p.setFont("DejaVu", 10)
+
         for client in clients:
             name = f"{client.first_name} {client.last_name}"
             truncated_name = truncate_text(name, 12)
@@ -189,11 +221,13 @@ class ClientReportPDFAPIView(APIView):
 
             total_income += client.price
 
+            # Перенос на новую страницу при нехватке места
             if y_position < 50:
                 p.showPage()
                 p.setFont("DejaVu", 10)
                 y_position = height - 50
 
+        # Завершаем PDF
         p.showPage()
         p.save()
         return response
