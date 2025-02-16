@@ -10,7 +10,9 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A3
 from reportlab.lib import colors
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics  # ✅ Импортируем pdfmetrics
+from reportlab.pdfbase import pdfmetrics
+from datetime import datetime
+from django.db.models import Q
 
 
 # Функция для обрезки текста с добавлением многоточия
@@ -72,45 +74,6 @@ class ClientDetailAPIView(APIView):
             )
         client.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-from reportlab.lib.pagesizes import A3
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-import os
-from datetime import datetime
-
-
-from datetime import datetime
-from django.db.models import Q
-
-
-from datetime import datetime
-import os
-
-from django.http import HttpResponse
-from django.db.models import Q
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A3
-from reportlab.lib import colors
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-
-from .models import Client, ApiKey
-
-
-# Функция для обрезки текста с добавлением многоточия
-def truncate_text(text, max_length):
-    if len(text) > max_length:
-        return text[:max_length] + "..."
-    return text
 
 
 class ClientReportPDFAPIView(APIView):
