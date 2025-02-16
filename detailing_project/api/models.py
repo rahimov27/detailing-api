@@ -13,11 +13,12 @@ class Client(models.Model):
 
     first_name = models.CharField(max_length=100, verbose_name="Имя", default="")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия", default="")
-    phone = models.CharField(max_length=15, verbose_name="Телефон", default="")
-    service = models.CharField(max_length=40, verbose_name="Услуга", default="")
+    phone = models.CharField(max_length=45, verbose_name="Телефон", default="")
+    service = models.CharField(max_length=45, verbose_name="Услуга", default="")
     price = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name="Цена услуги", default=0.00
     )
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
