@@ -13,12 +13,16 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from datetime import datetime
 from django.db.models import Q
+from django.views.generic import TemplateView
+from django.shortcuts import render
+
 
 # Функция для обрезки текста с добавлением многоточия
 def truncate_text(text, max_length):
     if len(text) > max_length:
         return text[:max_length] + "..."
     return text
+
 
 class ClientListCreateAPIView(APIView):
     @swagger_auto_schema(
@@ -37,6 +41,7 @@ class ClientListCreateAPIView(APIView):
         clients = Client.objects.all()
         serializer = ClientSerializer(clients, many=True)
         return Response(serializer.data)
+
 
 class ClientDetailAPIView(APIView):
     def get(self, request, pk):
@@ -71,6 +76,7 @@ class ClientDetailAPIView(APIView):
             )
         client.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ClientReportPDFAPIView(APIView):
     def get(self, request):
@@ -119,7 +125,6 @@ class ClientReportPDFAPIView(APIView):
         # Определение пути к шрифту
         font_path = "/root/detailing-api/detailing_project/assets/DejaVuSans.ttf"
         pdfmetrics.registerFont(TTFont("DejaVu", font_path))
-
 
         # Проверяем существование файла
         if not os.path.exists(font_path):
@@ -192,3 +197,12 @@ class ClientReportPDFAPIView(APIView):
         p.save()
         return response
 
+
+class HomeMessage(TemplateView):
+    def get(self, request):
+        return render(request, "index.html")
+
+
+class Support(TemplateView):
+    def get(self, request):
+        return render(request, "support.html")

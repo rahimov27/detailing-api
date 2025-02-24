@@ -4,7 +4,7 @@ from .models import Client, ApiKey
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ("first_name", "last_name", "phone", "date")
+    list_display = ("id", "first_name", "last_name", "phone", "date")
     search_fields = ("first_name", "last_name", "phone", "date")
 
 
