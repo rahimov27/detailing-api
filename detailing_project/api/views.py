@@ -77,6 +77,21 @@ class ClientDetailAPIView(APIView):
         client.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def patch(self, request, pk):
+        try:
+            client = Client.objects.get(pk=pk)
+        except:
+            Client.DoesNotExist
+            return Response(
+                {"detail": "Клиент не найден"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ClientSerializer(client, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
 
 class ClientReportPDFAPIView(APIView):
     def get(self, request):
