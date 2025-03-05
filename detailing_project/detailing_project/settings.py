@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "api",
     "corsheaders",
     "drf_yasg",
+    "rest_framework_simplejwt",
 ]
 
 MIDDLEWARE = [
@@ -140,15 +141,25 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-MIDDLEWARE.append("api.middleware.ApiKeyMiddleware")
+# MIDDLEWARE.append("api.middleware.ApiKeyMiddleware")
 
 
-SWAGGER_SETTINGS = {
-    "SECURITY_DEFINITIONS": {
-        "API Key": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header",
-        }
-    },
+# SWAGGER_SETTINGS = {
+#     "SECURITY_DEFINITIONS": {
+#         "API Key": {
+#             "type": "apiKey",
+#             "name": "Authorization",
+#             "in": "header",
+#         }
+#     },
+# }
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
