@@ -1,7 +1,7 @@
+from django.test import Client
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Client, ApiKey
 from .serializers import ClientSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django.http import HttpResponse
@@ -15,6 +15,11 @@ from datetime import datetime
 from django.db.models import Q
 from django.views.generic import TemplateView
 from django.shortcuts import render
+from .permissions import IsAdmin
+from .serializers import UserRegisterSerializer
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .models import Client
 
 
 # Функция для обрезки текста с добавлением многоточия
@@ -25,6 +30,8 @@ def truncate_text(text, max_length):
 
 
 class ClientListCreateAPIView(APIView):
+    permission_classes = [IsAdmin]
+
     @swagger_auto_schema(
         operation_description="Получение списка клиентов и создание нового клиента.",
         responses={200: ClientSerializer(many=True), 201: "Клиент создан"},
@@ -44,6 +51,8 @@ class ClientListCreateAPIView(APIView):
 
 
 class ClientDetailAPIView(APIView):
+    permission_classes = [IsAdmin]
+
     def get(self, request, pk):
         try:
             client = Client.objects.get(pk=pk)
@@ -94,15 +103,9 @@ class ClientDetailAPIView(APIView):
 
 
 class ClientReportPDFAPIView(APIView):
-    def get(self, request):
-        # Получаем API ключ из заголовка
-        api_key = request.headers.get("Authorization")
+    permission_classes = [IsAdmin]
 
-        # Проверка API-ключа
-        if not api_key or not ApiKey.objects.filter(key=api_key).exists():
-            return Response(
-                {"error": "Invalid API key"}, status=status.HTTP_403_FORBIDDEN
-            )
+    def get(self, request):
 
         # Получаем параметры месяца и года
         month = request.query_params.get("month")
@@ -138,7 +141,8 @@ class ClientReportPDFAPIView(APIView):
         y_position = height - 50
 
         # Определение пути к шрифту
-        font_path = "/root/detailing-api/detailing_project/assets/DejaVuSans.ttf"
+        # font_path = "/root/detailing-api/detailing_project/assets/DejaVuSans.ttf" server host
+        font_path = "/Users/r27/Desktop/crm-detailing-project/detailing_project/assets/DejaVuSans.ttf"
         pdfmetrics.registerFont(TTFont("DejaVu", font_path))
 
         # Проверяем существование файла
@@ -221,3 +225,22 @@ class HomeMessage(TemplateView):
 class Support(TemplateView):
     def get(self, request):
         return render(request, "support.html")
+
+
+class UserRegisterAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = UserRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(
+                {"detail": "Пользователь успешно зарегистрирован"},
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    # Вы можете расширить этот класс, чтобы добавить дополнительные данные в ответ
+    pass
