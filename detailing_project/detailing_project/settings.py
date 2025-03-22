@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from pathlib import Path
 
@@ -154,6 +155,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 #     },
 # }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),  # Время жизни access token
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),  # Время жизни refresh token
+    "ROTATE_REFRESH_TOKENS": True,  # Обновление refresh токенов при каждом обновлении access токена
+    "BLACKLIST_AFTER_ROTATION": True,  # Снятие с учета старых refresh токенов
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

@@ -141,7 +141,8 @@ class ClientReportPDFAPIView(APIView):
         y_position = height - 50
 
         # Определение пути к шрифту
-        font_path = "/root/detailing-api/detailing_project/assets/DejaVuSans.ttf"
+        # font_path = "/root/detailing-api/detailing_project/assets/DejaVuSans.ttf" server host
+        font_path = "/Users/r27/Desktop/crm-detailing-project/detailing_project/assets/DejaVuSans.ttf"
         pdfmetrics.registerFont(TTFont("DejaVu", font_path))
 
         # Проверяем существование файла
