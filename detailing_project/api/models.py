@@ -15,9 +15,8 @@ class Client(models.Model):
     last_name = models.CharField(max_length=100, verbose_name="Фамилия", default="")
     phone = models.CharField(max_length=45, verbose_name="Телефон", default="")
     service = models.CharField(max_length=45, verbose_name="Услуга", default="")
-    price = models.DecimalField(
-        max_digits=45, decimal_places=2, verbose_name="Цена услуги", default=0.00
-    )
+    price = models.IntegerField(
+         verbose_name="Цена услуги", default=0)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
